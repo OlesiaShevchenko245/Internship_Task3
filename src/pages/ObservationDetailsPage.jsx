@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { mockObservations } from "../mock/observations";
 
 function ObservationDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isCreateMode = !id;
 
@@ -14,41 +15,47 @@ function ObservationDetailsPage() {
 
   const [mode, setMode] = useState(isCreateMode ? "edit" : "view");
 
+  const emptyObservation = {
+    name: "",
+    description: "",
+    observationTime: "",
+    author: { firstName: "", lastName: "" },
+    celestialObjects: [],
+  };
+
   const [formData, setFormData] = useState(
-    existingObservation || {
-      name: "",
-      description: "",
-      observationTime: "",
-      author: { firstName: "", lastName: "" },
-      celestialObjects: [],
-    }
+    existingObservation || emptyObservation
   );
 
   const [originalData, setOriginalData] = useState(existingObservation);
-  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
   const [toastMessage, setToastMessage] = useState(null);
+  const [saveError, setSaveError] = useState(null);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const validate = () => {
+    const newErrors = {};
+
     if (!formData.name.trim()) {
-      setError("Name is required");
-      return false;
+      newErrors.name = "Name is required";
     }
+
     if (!formData.observationTime) {
-      setError("Observation time is required");
-      return false;
+      newErrors.observationTime = "Date is required";
     }
-    return true;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = () => {
     if (!validate()) return;
 
     try {
-      setError(null);
+      setSaveError(null);
 
       setOriginalData(formData);
       setMode("view");
@@ -58,31 +65,37 @@ function ObservationDetailsPage() {
           ? "Observation created successfully"
           : "Observation updated successfully"
       );
+
       setTimeout(() => setToastMessage(null), 3000);
 
       if (isCreateMode) {
-        navigate("/observations");
+        navigate(`/observations${location.search}`);
       }
     } catch (e) {
-      setError("Saving error occurred");
+      setSaveError("An error occurred while saving");
     }
   };
 
   const handleCancel = () => {
     if (isCreateMode) {
-      navigate("/observations");
+      navigate(`/observations${location.search}`);
     } else {
       setFormData(originalData);
+      setErrors({});
+      setSaveError(null);
       setMode("view");
-      setError(null);
     }
+  };
+
+  const goBack = () => {
+    navigate(`/observations${location.search}`);
   };
 
   return (
     <div style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}>
-      <button onClick={() => navigate("/observations")}>← Back</button>
+      <button onClick={goBack}>← Back</button>
 
-      <h1>
+      <h1 style={{ marginTop: "16px" }}>
         {isCreateMode
           ? "Create observation"
           : mode === "view"
@@ -115,7 +128,13 @@ function ObservationDetailsPage() {
             <input
               value={formData.name}
               onChange={(e) => handleChange("name", e.target.value)}
+              style={{
+                borderColor: errors.name ? "red" : "#ccc",
+              }}
             />
+            {errors.name && (
+              <p style={{ color: "red" }}>{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -136,16 +155,29 @@ function ObservationDetailsPage() {
               onChange={(e) =>
                 handleChange("observationTime", e.target.value)
               }
+              style={{
+                borderColor: errors.observationTime ? "red" : "#ccc",
+              }}
             />
+            {errors.observationTime && (
+              <p style={{ color: "red" }}>
+                {errors.observationTime}
+              </p>
+            )}
           </div>
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {saveError && (
+            <p style={{ color: "red" }}>{saveError}</p>
+          )}
 
           <div style={{ marginTop: "16px" }}>
             <button onClick={handleSave}>
               {isCreateMode ? "Create" : "Save"}
             </button>
-            <button onClick={handleCancel} style={{ marginLeft: "8px" }}>
+            <button
+              onClick={handleCancel}
+              style={{ marginLeft: "8px" }}
+            >
               Cancel
             </button>
           </div>
