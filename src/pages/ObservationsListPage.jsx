@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { mockObservations } from "../mock/observations";
+import "./ObservationsListPage.css";
 
 function ObservationsListPage() {
     const navigate = useNavigate();
@@ -11,7 +12,7 @@ function ObservationsListPage() {
     const toDate = searchParams.get("to");
 
     const page = Number(searchParams.get("page") ?? 0);
-    const size = Number(searchParams.get("size") ?? 2); // page size
+    const size = Number(searchParams.get("size") ?? 2);
 
     const [filterAuthorId, setFilterAuthorId] = useState(authorId || "");
     const [filterFrom, setFilterFrom] = useState(fromDate || "");
@@ -22,7 +23,6 @@ function ObservationsListPage() {
 
     const [observationToDelete, setObservationToDelete] = useState(null);
     const [deleteError, setDeleteError] = useState(null);
-
     const [toastMessage, setToastMessage] = useState(null);
 
     const applyFilters = () => {
@@ -32,7 +32,7 @@ function ObservationsListPage() {
         if (filterFrom) params.from = filterFrom;
         if (filterTo) params.to = filterTo;
 
-        params.page = 0; 
+        params.page = 0;
         params.size = size;
 
         setSearchParams(params);
@@ -70,26 +70,19 @@ function ObservationsListPage() {
 
             setToastMessage("The entity was deleted successfully");
             setTimeout(() => setToastMessage(null), 3000);
-        } catch (e) {
+        } catch {
             setDeleteError("An error occurred while deleting");
         }
     };
 
     return (
-        <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
-            <h1>Observations list</h1>
+        <div className="container">
+            <h1 className="title">Observations list</h1>
 
-            <div
-                style={{
-                    border: "1px solid #ddd",
-                    padding: "16px",
-                    borderRadius: "8px",
-                    marginBottom: "20px",
-                }}
-            >
+            <div className="filterBox">
                 <h3>Filters</h3>
 
-                <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                <div className="filterRow">
                     <div>
                         <label>Author ID</label>
                         <input
@@ -118,58 +111,48 @@ function ObservationsListPage() {
                     </div>
 
                     <div style={{ alignSelf: "flex-end" }}>
-                        <button onClick={applyFilters}>Apply filters</button>
+                        <button className="primaryButton" onClick={applyFilters}>
+                            Apply filters
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div style={{ marginBottom: "20px" }}>
-                <button onClick={() => navigate("/observations/new")}>
-                    Add new entity
-                </button>
-            </div>
+            <button
+                className="primaryButton"
+                onClick={() => navigate("/observations/new")}
+                style={{ marginBottom: "20px" }}
+            >
+                Add new entity
+            </button>
 
             {paginatedObservations.length === 0 ? (
                 <p>The list is empty</p>
             ) : (
-                <ul style={{ listStyle: "none", padding: 0 }}>
+                <ul className="list">
                     {paginatedObservations.map((obs) => (
                         <li
                             key={obs.id}
+                            className="listItem"
                             onClick={() => navigate(`/observations/${obs.id}`)}
                             onMouseEnter={() => setHoveredId(obs.id)}
                             onMouseLeave={() => setHoveredId(null)}
-                            style={{
-                                padding: "16px",
-                                border: "1px solid #ddd",
-                                borderRadius: "8px",
-                                marginBottom: "12px",
-                                cursor: "pointer",
-                                position: "relative",
-                                backgroundColor:
-                                    hoveredId === obs.id ? "#f9f9f9" : "transparent",
-                            }}
                         >
                             {hoveredId === obs.id && (
                                 <button
+                                    className="deleteButton"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setObservationToDelete(obs);
-                                    }}
-                                    style={{
-                                        position: "absolute",
-                                        right: "12px",
-                                        top: "12px",
-                                        cursor: "pointer",
                                     }}
                                 >
                                     🗑
                                 </button>
                             )}
 
-                            <h3 style={{ margin: "0 0 8px 0" }}>{obs.name}</h3>
+                            <h3>{obs.name}</h3>
 
-                            <div style={{ fontSize: "14px", color: "#555" }}>
+                            <div className="meta">
                                 <div>
                                     <strong>Date:</strong>{" "}
                                     {new Date(obs.observationTime).toLocaleString()}
@@ -185,11 +168,8 @@ function ObservationsListPage() {
             )}
 
             {totalPages > 1 && (
-                <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-                    <button
-                        disabled={page === 0}
-                        onClick={() => goToPage(page - 1)}
-                    >
+                <div className="pagination">
+                    <button disabled={page === 0} onClick={() => goToPage(page - 1)}>
                         Previous
                     </button>
 
@@ -207,24 +187,8 @@ function ObservationsListPage() {
             )}
 
             {observationToDelete && (
-                <div
-                    style={{
-                        position: "fixed",
-                        inset: 0,
-                        backgroundColor: "rgba(0,0,0,0.4)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                >
-                    <div
-                        style={{
-                            background: "#fff",
-                            padding: "24px",
-                            borderRadius: "8px",
-                            width: "400px",
-                        }}
-                    >
+                <div className="modalOverlay">
+                    <div className="filterBox">
                         <h3>Confirmation</h3>
 
                         <p>
@@ -232,42 +196,21 @@ function ObservationsListPage() {
                             <strong>{observationToDelete.name}</strong>?
                         </p>
 
-                        {deleteError && (
-                            <p style={{ color: "red" }}>{deleteError}</p>
-                        )}
+                        {deleteError && <p style={{ color: "red" }}>{deleteError}</p>}
 
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "flex-end",
-                                gap: "8px",
-                                marginTop: "16px",
-                            }}
-                        >
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
                             <button onClick={() => setObservationToDelete(null)}>
                                 Cancel
                             </button>
-                            <button onClick={handleDelete}>Delete</button>
+                            <button className="primaryButton" onClick={handleDelete}>
+                                Delete
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {toastMessage && (
-                <div
-                    style={{
-                        position: "fixed",
-                        bottom: "20px",
-                        right: "20px",
-                        background: "#333",
-                        color: "#fff",
-                        padding: "12px 16px",
-                        borderRadius: "6px",
-                    }}
-                >
-                    {toastMessage}
-                </div>
-            )}
+            {toastMessage && <div className="toast">{toastMessage}</div>}
         </div>
     );
 }
