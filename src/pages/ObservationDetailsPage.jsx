@@ -2,6 +2,11 @@ import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { mockObservations } from "../mock/observations";
 import "./ObservationDetailsPage.css";
+import {
+  getObservationById,
+  createObservation,
+  updateObservation,
+} from "../services/observationApi";
 
 function ObservationDetailsPage() {
     const { id } = useParams();
@@ -10,9 +15,19 @@ function ObservationDetailsPage() {
 
     const isCreateMode = !id;
 
-    const existingObservation = mockObservations.find(
-        (o) => o.id === Number(id)
-    );
+    const [loading, setLoading] = useState(!isCreateMode);
+
+    useEffect(() => {
+    if (!isCreateMode) {
+        getObservationById(id)
+        .then((data) => {
+            setFormData(data);
+            setOriginalData(data);
+        })
+        .catch(() => setSaveError("Failed to load observation"))
+        .finally(() => setLoading(false));
+    }
+    }, [id, isCreateMode]);
 
     const [mode, setMode] = useState(isCreateMode ? "edit" : "view");
 
@@ -52,13 +67,36 @@ function ObservationDetailsPage() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!validate()) return;
 
         try {
             setSaveError(null);
-            setOriginalData(formData);
-            setMode("view");
+            try {
+                setSaveError(null);
+
+                const saved = isCreateMode
+                    ? await createObservation(formData)
+                    : await updateObservation(id, formData);
+
+                setFormData(saved);
+                setOriginalData(saved);
+                setMode("view");
+
+                setToastMessage(
+                    isCreateMode
+                    ? "Observation created successfully"
+                    : "Observation updated successfully"
+                );
+
+                setTimeout(() => setToastMessage(null), 3000);
+
+                if (isCreateMode) {
+                    navigate(`/observations${location.search}`);
+                }
+                } catch (e) {
+                setSaveError("An error occurred while saving");
+                }
 
             setToastMessage(
                 isCreateMode
