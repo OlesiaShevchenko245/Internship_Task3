@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { listObservations, deleteObservation } from "../services/observationApi";
 import { getAuthors } from "../services/authorApi";
 import "./ObservationsListPage.css";
@@ -13,6 +13,7 @@ function ObservationsListPage() {
   const authorId = searchParams.get("authorId");
   const name = searchParams.get("name");
   const startTime = searchParams.get("startTime");
+  const location = useLocation();
 
   const [filterAuthorId, setFilterAuthorId] = useState(authorId || "");
   const [filterName, setFilterName] = useState(name || "");

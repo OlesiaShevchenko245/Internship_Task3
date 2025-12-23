@@ -1,49 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { mockObservations } from "../mock/observations";
 import "./ObservationDetailsPage.css";
 import {
   getObservationById,
   createObservation,
   updateObservation,
 } from "../services/observationApi";
+import { getAuthors } from "../services/authorApi";
 
 function ObservationDetailsPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isCreateMode = !id;
-
-    const [loading, setLoading] = useState(!isCreateMode);
+    const isCreateMode = id === "new";
 
     useEffect(() => {
-    if (!isCreateMode) {
-        getObservationById(id)
-        .then((data) => {
-            setFormData(data);
-            setOriginalData(data);
-        })
-        .catch(() => setSaveError("Failed to load observation"))
-        .finally(() => setLoading(false));
-    }
+        if (!isCreateMode) {
+            getObservationById(id)
+                .then((data) => {
+                    setFormData({
+                        ...data,
+                        author: data.author ?? { firstName: "", lastName: "" },
+                    });
+                    setOriginalData(data);
+                })
+                .catch(() => setSaveError("Failed to load observation"));
+        }
     }, [id, isCreateMode]);
 
     const [mode, setMode] = useState(isCreateMode ? "edit" : "view");
+    const [authors, setAuthors] = useState([]);
+
+    useEffect(() => {
+        getAuthors()
+            .then(setAuthors)
+            .catch(() => setSaveError("Failed to load authors"));
+    }, []);
 
     const emptyObservation = {
         name: "",
         description: "",
         observationTime: "",
-        author: { firstName: "", lastName: "" },
+        authorId: null,
+        author: {
+            firstName: "",
+            lastName: "",
+        },
         celestialObjects: [],
     };
 
-    const [formData, setFormData] = useState(
-        existingObservation || emptyObservation
-    );
+    const [formData, setFormData] = useState(emptyObservation);
 
-    const [originalData, setOriginalData] = useState(existingObservation);
+    const [originalData, setOriginalData] = useState(null);
     const [errors, setErrors] = useState({});
     const [toastMessage, setToastMessage] = useState(null);
     const [saveError, setSaveError] = useState(null);
@@ -67,6 +76,8 @@ function ObservationDetailsPage() {
         return Object.keys(newErrors).length === 0;
     };
 
+    const normalizeDate = (value) => value.length === 16 ? value + ":00" : value;
+
     const handleSave = async () => {
         if (!validate()) return;
 
@@ -74,10 +85,16 @@ function ObservationDetailsPage() {
             setSaveError(null);
             try {
                 setSaveError(null);
+                
+                const payload = {
+                    ...formData,
+                    authorId: Number(formData.authorId),
+                    observationTime: normalizeDate(formData.observationTime),
+                };
 
                 const saved = isCreateMode
-                    ? await createObservation(formData)
-                    : await updateObservation(id, formData);
+                    ? await createObservation(payload)
+                    : await updateObservation(id, payload);
 
                 setFormData(saved);
                 setOriginalData(saved);
@@ -151,7 +168,7 @@ function ObservationDetailsPage() {
                         <p><strong>Date:</strong> {formData.observationTime}</p>
                         <p>
                             <strong>Author:</strong>{" "}
-                            {formData.author.firstName} {formData.author.lastName}
+                            {formData.author?.firstName} {formData.author?.lastName}
                         </p>
                         <p>
                             <strong>Celestial objects:</strong>{" "}
@@ -210,6 +227,29 @@ function ObservationDetailsPage() {
                             {errors.observationTime && (
                                 <p className="error">{errors.observationTime}</p>
                             )}
+                        </div>
+
+                        <div className="field">
+                            <label>Author</label>
+                            <select
+                                className="input"
+                                value={formData.authorId ?? ""}
+                                onChange={(e) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        authorId: Number(e.target.value),
+                                    }))
+                                }
+                            >
+                                <option value="" disabled>
+                                    Select author
+                                </option>
+                                {authors.map((a) => (
+                                    <option key={a.id} value={a.id}>
+                                        {a.firstName} {a.lastName}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         {saveError && <p className="error">{saveError}</p>}
