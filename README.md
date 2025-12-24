@@ -115,6 +115,7 @@ ___
 - номер сторінки та розмір сторінки зберігаються в URL  
 - стан не скидається при refresh  
 4. Сторінка спостереження  
+
 Підтримує два режими:  
 - View mode  
   - відображення всіх полів  
@@ -133,7 +134,7 @@ ___
 
 ___
 
-### Інтеграція з API: 
+### Інтеграція з API:  
 Використані endpoints:  
 - GET /api/author  
 - POST /api/observation/_list  
@@ -141,6 +142,7 @@ ___
 - POST /api/observation  
 - PUT /api/observation/{id}  
 - DELETE /api/observation/{id}  
+
 _Всі запити реалізовані через Fetch API у окремій папці services/._
 ___
 
