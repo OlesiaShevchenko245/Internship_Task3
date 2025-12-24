@@ -26,7 +26,7 @@ _Стан фільтрів та пагінації зберігається в U
 ___
 
 ## Запуск сервера
-### Клонування репозиторію (після завантаження даного рипозиторію (https://github.com/OlesiaShevchenko245/Internship_Task2))
+### Клонування репозиторію (після завантаження даного репозиторію (https://github.com/OlesiaShevchenko245/Internship_Task2))
 ```
 git clone <repository-url>
 cd Internship_Task2
@@ -60,7 +60,7 @@ curl http://localhost:8080/api/author
 _Очікуваний результат - JSON з 5 авторами: Galileo Galilei, Edwin Hubble, Johannes Kepler, Caroline Herschel, Tycho Brahe._  
 
 ## Запуск клієнта  
-### Клонування репозиторію (після завантаження даного рипозиторію (https://github.com/OlesiaShevchenko245/Internship_Task3))
+### Клонування репозиторію (після завантаження даного репозиторію (https://github.com/OlesiaShevchenko245/Internship_Task3))
 ```
 git clone <repository-url>
 cd Internship_Task3
